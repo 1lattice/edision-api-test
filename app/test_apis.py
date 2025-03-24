@@ -11,7 +11,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'a
 from database import SessionLocal
 from models import SwaggerApiData, InputData, Results, GroupName, TestHistory
 
-# Function to get a database session
 def get_db():
     db = SessionLocal()
     try:
@@ -19,12 +18,10 @@ def get_db():
     finally:
         db.close()
 
-# Function to get all group names' ids from the database
 def get_all_group_name_ids(db):
     groups = db.query(GroupName).all()
     return [group.id for group in groups]
 
-# Function to log the test history to the database
 def log_test_history(db, group_name, group_id, api, status, response=None, error_message=None, time_taken=None):
     test_history = TestHistory(
         group_name=group_name,
@@ -39,12 +36,10 @@ def log_test_history(db, group_name, group_id, api, status, response=None, error
     db.add(test_history)
     db.commit()
 
-# Function to get API data and input/result data
 def get_api_data(db, group_ids):
     if not group_ids:
         pytest.fail(f"No groups found in the database!")
 
-    # Fetch all APIs belonging to this GroupName, sorted by priority, with eager loading of 'group_names'
     apis = db.query(SwaggerApiData).filter(SwaggerApiData.group_name_id.in_(group_ids)) \
         .options(joinedload(SwaggerApiData.group_names)).order_by(SwaggerApiData.priority).all()
 
@@ -97,9 +92,6 @@ def test_call_api(api, input_data, result_data):
         time_taken = end_time - start_time
         error_message = str(e)
 
-        if response:
-            log_test_history(db, api.group_names.group_name, api.group_name_id, api, "Fail", response, error_message, time_taken)
-        else:
-            log_test_history(db, api.group_names.group_name, api.group_name_id, api, "Fail", response, error_message, time_taken)
+        log_test_history(db, api.group_names.group_name, api.group_name_id, api, "Fail", response, error_message, time_taken)
         pytest.fail(error_message)
 

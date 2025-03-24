@@ -4,7 +4,6 @@ from . import crud, schemas, database
 
 app = FastAPI()
 
-# Dependency to get DB session
 def get_db():
     db = database.SessionLocal()
     try:
@@ -12,7 +11,6 @@ def get_db():
     finally:
         db.close()
 
-# Routes
 @app.post("/swagger_api_data/")
 def create_swagger_api_data(data: schemas.SwaggerApiDataCreate, db: Session = Depends(get_db)):
     return crud.create_swagger_api_data(db=db, data=data)
